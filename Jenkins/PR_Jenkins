@@ -1,10 +1,15 @@
 pipeline {
     agent any
 
+    parameters {
+        string(name: 'branch_name', defaultValue: '', description: '')
+        string(name: 'repo_url', defaultValue: '', description: '')
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
-                checkout scm
+                git branch: "${params.branch_name}", url: "${params.repo_url}"
             }
         }
 
