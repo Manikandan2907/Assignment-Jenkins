@@ -1,13 +1,32 @@
 pipeline {
     agent any
+    
+    parameters {
+        string(name: 'branch_name', defaultValue: 'm', description: 'Branch to build from')
+    }
 
     environment {
         DOCKER_REGISTRY = 'docker.io'  
-        DOCKER_IMAGE = 'manikandan29/assignment'   // Docker image names must be lowercase
+        DOCKER_IMAGE = 'manikandan29/assignment'   
         DOCKER_CREDENTIALS = credentials('dockerhub-creds')
+        IMAGE_TAG = 'latest'
     }
 
     stages {
+        stage('Verify Branch') {
+            steps {
+                script {
+                    def branch = "${params.branch_name}".replace('refs/heads/', '')
+                    if ( branch != 'main') {
+                        echo "This build is running on branch '${branch}' , skipping the pipeline as it's not 'main'."
+                        currentBuild.result = 'SUCCESS'
+                        error("Skipping build for non-main branch.")
+                    } else {
+                        echo "Verified main branch. Continuing pipeline..."
+                    }
+                }
+            }
+        }
 
         stage('Checkout Code') {
             steps {
@@ -18,11 +37,18 @@ pipeline {
             }
         }
 
+        stage('Build and Test') {
+            steps {
+                script {
+                    echo 'Building and testing the application...'
+                    sh './mvnw clean install -DskipTests' //Skipping the tests as they are already completed at the PR itself. 
+                }
+            }
+        }
+
         stage('Build, Scan, and Push Docker Image') {
             steps {
                 script {
-                    def imageTag = "${env.BUILD_NUMBER}"  // Safer than GIT_COMMIT (can be null)
-                    env.IMAGE_TAG = imageTag
 
                     echo "Building Docker Image: ${DOCKER_IMAGE}:${IMAGE_TAG}"
                     sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
