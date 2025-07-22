@@ -3,10 +3,17 @@ pipeline {
 
     parameters {
         string(name: 'branch_name', defaultValue: '', description: '')
-        string(name: 'repo_url', defaultValue: '', description: '')
+        string(name: 'repo_url', defaultValue: 'https://github.com/Manikandan2907/Assignment-App.git', description: '')
     }
 
     stages {
+        stage('Deubugging step'){
+            steps {
+                sh "echo The branch name is '${params.branch_name}'"
+                sh "echo The repo url is '${params.repo_url}'"
+            }
+        }
+        
         stage('Checkout Code') {
             steps {
                 git branch: "${params.branch_name}", url: "${params.repo_url}"
@@ -15,6 +22,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
+                sh 'chmod +x ./mvnw'
                 sh './mvnw clean verify'
             }
         }
@@ -24,7 +32,7 @@ pipeline {
                 SONAR_TOKEN = credentials('sonarqube-api')
             }
             steps {
-                withSonarQubeEnv('SonarQube') {
+                withSonarQubeEnv('sonarqube') {
                     sh './mvnw sonar:sonar -Dsonar.projectKey=assignment'
                 }
             }
@@ -33,7 +41,7 @@ pipeline {
 
     post {
         always {
-            junit 'target/surefire-reports/*.xml'
+            junit '**/target/surefire-reports/*.xml'
         }
     }
 }
