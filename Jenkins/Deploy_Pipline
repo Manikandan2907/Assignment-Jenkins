@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(name: 'Environment', choices: ['stage', 'prod'], description: 'Environment to deploy')
+    }
+
+    environment {
+        DOCKER_REGISTRY = 'docker.io'
+        DOCKER_IMAGE = 'manikandan29/assignment'
+        IMAGE_TAG = 'latest'
+        TARGET_SERVER = '98.81.131.42'  
+    }
+
+    stages {
+        stage('Approval for Production') {
+            when {
+                expression { params.Environment == 'prod' }
+            }
+            steps {
+                input message: "You selected 'prod'. Do you want to proceed with production deployment?"
+            }
+        }
+
+        stage('Deploy to Remote Server') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sshagent(['server']) {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no ubuntu@${env.TARGET_SERVER} '
+                                    echo "Logging into Docker..."
+                                    docker login -u ${DOCKER_USER} -p ${DOCKER_PASS} ${DOCKER_REGISTRY}
+
+                                    echo "Pulling latest image..."
+                                    docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}
+
+                                    echo "Stopping existing container (if any)..."
+                                    docker stop assignment || true
+                                    docker rm assignment || true
+
+                                    echo "Starting new container..."
+                                    docker run -d --name assignment -p 8081:8080 ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}
+                                '
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
