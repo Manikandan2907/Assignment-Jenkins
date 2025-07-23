@@ -9,7 +9,7 @@ pipeline {
         DOCKER_REGISTRY = 'docker.io'
         DOCKER_IMAGE = 'manikandan29/assignment'
         IMAGE_TAG = 'latest'
-        TARGET_SERVER = '98.81.131.42'  
+        TARGET_SERVER = '98.81.131.42'  // Same for both stage and prod
     }
 
     stages {
@@ -49,4 +49,20 @@ pipeline {
             }
         }
     }
+    post {
+    failure {
+        script {
+            sh '''
+                echo "Subject: Jenkins Job FAILED
+To: mani29tt@gmail.com
+From: Jenkins <mani29tt@gmail.com>
+
+The Jenkins job has failed during deployment.
+Job: CD-Job
+Build URL: ${BUILD_URL}" | msmtp --debug --logfile /tmp/msmtp.log mani29tt@gmail.com
+            '''
+        }
+    }
+}
+
 }
