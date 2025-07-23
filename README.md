@@ -120,4 +120,4 @@ graph TD
     H --> I[Manual Deployment Pipeline Triggered]
     I --> J{Stage or Prod?}
     J -->|Stage| K[Deploy to EC2]
-    J -->|Prod| K[Manual Approval -> Deploy to EC2]
+    J -->|Prod| L[Manual Approval -> Deploy to EC2]
