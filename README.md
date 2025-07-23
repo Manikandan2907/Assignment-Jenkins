@@ -115,8 +115,8 @@ graph TD
     C --> D[Build Success or Fail]
     D --> E[PR Review & Merge to Main]
     E --> F[Main Branch Pipeline Triggered]
-    F --> G[Build Jar, Dockerize, Push to DockerHub]
-    G --> H[Trivy Image Scan]
+    F --> G[Build Jar, Dockerize, Trivy Image Scan]
+    G --> H[Push to Dockerhub]
     H --> I[Manual Deployment Pipeline Triggered]
     I --> J{Stage or Prod?}
     J -->|Stage| K[Deploy to EC2]
