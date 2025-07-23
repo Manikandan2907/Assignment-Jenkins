@@ -78,6 +78,7 @@ This is a **manually-triggered** Jenkins job, not triggered by webhook.
 - Starts a new container using the pulled image.
 - For `prod` environment:
   - Prompts a manual approval step before deployment proceeds.
+- Send notification to email when the job fails
 
 **Outcome:**  
 Deploys the latest image to the EC2 server in either staging or production mode.
