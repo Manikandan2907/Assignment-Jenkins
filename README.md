@@ -122,3 +122,5 @@ graph TD
     I --> J{Stage or Prod?}
     J -->|Stage| K[Deploy to EC2]
     J -->|Prod| L[Manual Approval -> Deploy to EC2]
+    K --> M[Send Notification on Failure]
+    L --> M[Send Notification on Failure]
