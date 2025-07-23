@@ -52,6 +52,8 @@ Triggered automatically via a second GitHub webhook **when code is merged to `ma
 - Clones the main branch and **builds the code**, skipping tests.
 - Packages the application as a **JAR file**.
 - Builds a **Docker image** using this JAR.
+- Scans the Docker image using **[Trivy](https://github.com/aquasecurity/trivy)** for vulnerabilities (HIGH/CRITICAL).
+- Pushes the scanned Docker image to **Docker Hub**.
 - Pushes the Docker image to **Docker Hub**:
   - Docker Hub credentials are securely stored in Jenkins credentials store.
 
@@ -87,10 +89,11 @@ Deploys the latest image to the EC2 server in either staging or production mode.
 | Tool         | Purpose                                         |
 |--------------|--------------------------------------------------|
 | Jenkins      | CI/CD orchestration                             |
-| Maven Wrapper (`mvnw`) | Builds & tests Spring Boot application       |
+| Maven Wrapper (`mvnw`) | Builds & tests Spring Boot application|
 | SonarQube    | Static code analysis                            |
 | Docker       | Containerization of the application             |
 | Docker Hub   | Container registry for storing images           |
+| Trivy        | Container image vulnerability scanning (HIGH/CRITICAL)|
 | GitHub Webhooks | Triggers Jenkins pipelines on PR and merge events |
 | EC2 (Ubuntu) | Remote server for deployment                    |
 
@@ -113,7 +116,8 @@ graph TD
     D --> E[PR Review & Merge to Main]
     E --> F[Main Branch Pipeline Triggered]
     F --> G[Build Jar, Dockerize, Push to DockerHub]
-    G --> H[Manual Deployment Pipeline Triggered]
-    H --> I{Stage or Prod?}
-    I -->|Stage| J[Deploy to EC2]
-    I -->|Prod| K[Manual Approval -> Deploy to EC2]
+    G --> H[Trivy Image Scan]
+    H --> I[Manual Deployment Pipeline Triggered]
+    I --> J{Stage or Prod?}
+    J -->|Stage| K[Deploy to EC2]
+    J -->|Prod| K[Manual Approval -> Deploy to EC2]
